@@ -33,11 +33,6 @@ function toggleTheme() {
         themeIcon.textContent = '🌙';
     }
 }
-if (!playerName || playerName.trim() === "") {
-    alert("Player name is required");
-    return;
-}
-
 
 function switchTab(tabName) {
     const tabs = document.querySelectorAll('.tab-content');
@@ -140,6 +135,12 @@ function generateKeyboard() {
 function startGame() {
     const p1Name = document.getElementById('player1Name').value.trim();
     const p2Name = document.getElementById('player2Name').value.trim();
+
+    // ✅ Fix Issue #1: Prevent starting the game if BOTH names are empty
+    if (!p1Name && !p2Name) {
+        alert("Player name is required. Please enter at least one player name.");
+        return;
+    }
     
     gameState.player1.name = p1Name || 'Player 1';
     gameState.player2.name = p2Name || 'Player 2';
