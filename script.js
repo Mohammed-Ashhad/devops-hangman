@@ -21,7 +21,6 @@ let wordBank = [];
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    // Apply saved theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.classList.add('dark');
@@ -152,7 +151,7 @@ function startGame() {
     const p1Name = document.getElementById('player1Name').value.trim();
     const p2Name = document.getElementById('player2Name').value.trim();
 
-    // Fix Issue #1: Prevent starting without player name
+    // Name validation fix
     if (!p1Name && !p2Name) {
         alert("Player name is required. Please enter at least one name.");
         return;
@@ -163,7 +162,11 @@ function startGame() {
     
     document.getElementById('player1Display').textContent = gameState.player1.name;
     document.getElementById('player2Display').textContent = gameState.player2.name;
-    
+
+    // Hide word bank and switch to game tab
+    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+    document.getElementById('game').classList.add('active');
+
     document.getElementById('gameArea').style.display = 'block';
     
     nextRound();
@@ -214,11 +217,7 @@ function updateWordDisplay() {
     let displayText = '';
     
     for (let letter of gameState.currentWord) {
-        if (gameState.guessedLetters.includes(letter)) {
-            displayText += letter + ' ';
-        } else {
-            displayText += '_ ';
-        }
+        displayText += gameState.guessedLetters.includes(letter) ? letter + ' ' : '_ ';
     }
     
     display.textContent = displayText.trim();
@@ -235,7 +234,6 @@ function updateWrongLetters() {
 }
 
 function updateLives() {
-    // Fix Issue: Lives start at 6 instead of 7
     const livesLeft = gameState.maxWrong - gameState.wrongGuesses;
     document.getElementById('livesLeft').textContent = livesLeft;
 }
@@ -245,8 +243,7 @@ function updateHangman() {
     const partIndex = gameState.wrongGuesses - 1;
     
     if (partIndex >= 0 && partIndex < wrongOrder.length) {
-        const partToShow = wrongOrder[partIndex];
-        document.getElementById(partToShow).style.display = 'block';
+        document.getElementById(wrongOrder[partIndex]).style.display = 'block';
     }
 }
 
@@ -298,27 +295,25 @@ function gameWon() {
         document.getElementById('score1').textContent = gameState.player1.score;
     }
     
-    const statusDiv = document.getElementById('gameStatus');
-    const statusMsg = document.getElementById('statusMessage');
-    
     const winnerName = gameState.currentPlayer === 1 ? 
         gameState.player2.name : gameState.player1.name;
     
-    statusMsg.textContent = `🎉 ${winnerName} won! The word was: ${gameState.currentWord}`;
-    statusDiv.classList.add('show', 'winner');
+    document.getElementById('statusMessage').textContent =
+        `🎉 ${winnerName} won! The word was: ${gameState.currentWord}`;
+    
+    document.getElementById('gameStatus').classList.add('show', 'winner');
 }
 
 function gameLost() {
     gameState.gameActive = false;
     
-    const statusDiv = document.getElementById('gameStatus');
-    const statusMsg = document.getElementById('statusMessage');
-    
     const currentPlayerName = gameState.currentPlayer === 1 ? 
         gameState.player1.name : gameState.player2.name;
     
-    statusMsg.textContent = `😢 ${currentPlayerName} lost! The word was: ${gameState.currentWord}`;
-    statusDiv.classList.add('show', 'loser');
+    document.getElementById('statusMessage').textContent =
+        `😢 ${currentPlayerName} lost! The word was: ${gameState.currentWord}`;
+    
+    document.getElementById('gameStatus').classList.add('show', 'loser');
     
     gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
 }
