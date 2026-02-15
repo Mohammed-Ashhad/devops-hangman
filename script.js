@@ -1,385 +1,401 @@
 const defaultWords = [
-    'DEVOPS', 'AGILE', 'VERSION', 'BRANCH', 'GITHUB',
-    'CHANGES', 'FEATURES', 'HOTFIX', 'CONTINUOUS', 'INTEGRATION',
-    'DEPLOYMENT', 'TESTING', 'COMMIT', 'SNAPSHOT', 'CULTURE',
-    'PIPELINE', 'DOCKER', 'SCRUM', 'KANBAN', 'MERGE'
+  "DEVOPS", "AGILE", "VERSION", "BRANCH", "GITHUB",
+  "CHANGES", "FEATURES", "HOTFIX", "CONTINUOUS", "INTEGRATION",
+  "DEPLOYMENT", "TESTING", "COMMIT", "SNAPSHOT", "CULTURE",
+  "PIPELINE", "DOCKER", "SCRUM", "KANBAN", "MERGE"
 ];
 
 let gameState = {
-    player1: { name: '', score: 0 },
-    player2: { name: '', score: 0 },
-    currentPlayer: 1,
-    currentWord: '',
-    guessedLetters: [],
-    wrongGuesses: 0,
-    maxWrong: 6,
-    gameActive: false,
-    usedWords: []
+  player1: { name: "", score: 0 },
+  player2: { name: "", score: 0 },
+  currentPlayer: 1,
+  currentWord: "",
+  guessedLetters: [],
+  wrongGuesses: 0,
+  maxWrong: 6,
+  gameActive: false,
+  usedWords: []
 };
 
 let wordBank = [];
 
-document.addEventListener('DOMContentLoaded', function() {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'dark') {
-        document.body.classList.add('dark');
-        const themeIcon = document.querySelector('.theme-icon');
-        if (themeIcon) themeIcon.textContent = '☀️';
-    }
+document.addEventListener("DOMContentLoaded", function () {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    document.body.classList.add("dark");
+    const themeIcon = document.querySelector(".theme-icon");
+    if (themeIcon) themeIcon.textContent = "☀️";
+  }
 
-    loadWordBank();
-    generateKeyboard();
+  loadWordBank();
+  generateKeyboard();
 });
 
 function toggleTheme() {
-    document.body.classList.toggle('dark');
+  document.body.classList.toggle("dark");
 
-    const themeIcon = document.querySelector('.theme-icon');
-    if (themeIcon) {
-        themeIcon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
-    }
+  const themeIcon = document.querySelector(".theme-icon");
+  if (themeIcon) {
+    themeIcon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  }
 
-    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
 }
 
 // Safer tab switching even if event is not passed
 function switchTab(tabName, evt) {
-    // Block opening Word Bank during active game
-    if (gameState.gameActive && tabName.toLowerCase().includes('word')) {
-        alert("Word bank is hidden during an active game.");
-        return;
-    }
+  // Block opening Word Bank during active game
+  if (gameState.gameActive && String(tabName).toLowerCase().includes("word")) {
+    alert("Word bank is hidden during an active game.");
+    return;
+  }
 
-    const e = evt || window.event;
+  const e = evt || window.event;
 
-    const tabs = document.querySelectorAll('.tab-content');
-    tabs.forEach(tab => tab.classList.remove('active'));
+  const tabs = document.querySelectorAll(".tab-content");
+  tabs.forEach(tab => tab.classList.remove("active"));
 
-    const tabButtons = document.querySelectorAll('.tab');
-    tabButtons.forEach(btn => btn.classList.remove('active'));
+  const tabButtons = document.querySelectorAll(".tab");
+  tabButtons.forEach(btn => btn.classList.remove("active"));
 
-    const targetTab = document.getElementById(tabName);
-    if (targetTab) targetTab.classList.add('active');
+  const targetTab = document.getElementById(tabName);
+  if (targetTab) targetTab.classList.add("active");
 
-    if (e && e.target) {
-        e.target.classList.add('active');
-    }
+  if (e && e.target) {
+    e.target.classList.add("active");
+  }
 }
 
 function loadWordBank() {
-    const stored = localStorage.getItem('devopsWords');
-    if (stored) {
-        try {
-            wordBank = JSON.parse(stored) || [];
-        } catch {
-            wordBank = [];
-        }
-    } else {
-        wordBank = [...defaultWords];
-        saveWordBank();
+  const stored = localStorage.getItem("devopsWords");
+  if (stored) {
+    try {
+      wordBank = JSON.parse(stored) || [];
+    } catch {
+      wordBank = [];
     }
-    displayWordBank();
+  } else {
+    wordBank = [...defaultWords];
+    saveWordBank();
+  }
+  displayWordBank();
 }
 
 function saveWordBank() {
-    localStorage.setItem('devopsWords', JSON.stringify(wordBank));
+  localStorage.setItem("devopsWords", JSON.stringify(wordBank));
 }
 
 function displayWordBank() {
-    const wordList = document.getElementById('wordList');
-    const wordCount = document.getElementById('wordCount');
+  const wordList = document.getElementById("wordList");
+  const wordCount = document.getElementById("wordCount");
 
-    if (wordCount) wordCount.textContent = wordBank.length;
-    if (!wordList) return;
+  if (wordCount) wordCount.textContent = String(wordBank.length);
+  if (!wordList) return;
 
-    if (wordBank.length === 0) {
-        wordList.innerHTML = `
-            <div class="empty-state">
-                <h3>No words in the bank!</h3>
-                <p>Add some DevOps terms to get started.</p>
-            </div>
-        `;
-        return;
-    }
+  if (wordBank.length === 0) {
+    wordList.innerHTML = `
+      <div class="empty-state">
+        <h3>No words in the bank!</h3>
+        <p>Add some DevOps terms to get started.</p>
+      </div>
+    `;
+    return;
+  }
 
-    wordList.innerHTML = '';
-    wordBank.forEach((word, index) => {
-        const wordItem = document.createElement('div');
-        wordItem.className = 'word-item';
-        wordItem.innerHTML = `
-            <span class="word">${word}</span>
-            <div class="actions">
-                <button class="edit-btn" onclick="editWord(${index})">Edit</button>
-                <button class="delete-btn" onclick="deleteWord(${index})">Delete</button>
-            </div>
-        `;
-        wordList.appendChild(wordItem);
-    });
+  wordList.innerHTML = "";
+  wordBank.forEach((word, index) => {
+    const wordItem = document.createElement("div");
+    wordItem.className = "word-item";
+    wordItem.innerHTML = `
+      <span class="word">${word}</span>
+      <div class="actions">
+        <button class="edit-btn" onclick="editWord(${index})">Edit</button>
+        <button class="delete-btn" onclick="deleteWord(${index})">Delete</button>
+      </div>
+    `;
+    wordList.appendChild(wordItem);
+  });
 }
 
 function addWord() {
-    const input = document.getElementById('newWord');
-    if (!input) return;
+  const input = document.getElementById("newWord");
+  if (!input) return;
 
-    const word = input.value.trim().toUpperCase();
-    if (!word) return;
+  const word = input.value.trim().toUpperCase();
+  if (!word) return;
 
-    wordBank.push(word);
-    input.value = '';
-    saveWordBank();
-    displayWordBank();
+  wordBank.push(word);
+  input.value = "";
+  saveWordBank();
+  displayWordBank();
 }
 
 function editWord(index) {
-    const newWord = prompt('Edit word:', wordBank[index]);
-    if (newWord) {
-        wordBank[index] = newWord.trim().toUpperCase();
-        saveWordBank();
-        displayWordBank();
-    }
+  const newWord = prompt("Edit word:", wordBank[index]);
+  if (newWord) {
+    wordBank[index] = newWord.trim().toUpperCase();
+    saveWordBank();
+    displayWordBank();
+  }
 }
 
 function deleteWord(index) {
-    if (confirm('Are you sure you want to delete this word?')) {
-        wordBank.splice(index, 1);
-        saveWordBank();
-        displayWordBank();
-    }
+  if (confirm("Are you sure you want to delete this word?")) {
+    wordBank.splice(index, 1);
+    saveWordBank();
+    displayWordBank();
+  }
 }
 
 function generateKeyboard() {
-    const keyboard = document.getElementById('keyboard');
-    if (!keyboard) return;
+  const keyboard = document.getElementById("keyboard");
+  if (!keyboard) return;
 
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  keyboard.innerHTML = "";
 
-    keyboard.innerHTML = '';
-    for (let letter of letters) {
-        const button = document.createElement('button');
-        button.className = 'key';
-        button.textContent = letter;
-        button.onclick = () => guessLetter(letter);
-        button.id = 'key-' + letter;
-        keyboard.appendChild(button);
-    }
+  for (const letter of letters) {
+    const button = document.createElement("button");
+    button.className = "key";
+    button.textContent = letter;
+    button.onclick = () => guessLetter(letter);
+    button.id = "key-" + letter;
+    keyboard.appendChild(button);
+  }
 }
 
-// ✅ Strong hide: hides Word Bank tab button + content (even if ids differ)
+// Hide Word Bank tab + content after game starts
 function hideWordBankUI() {
-    // 1) Hide the Word Bank tab button (top tab)
-    const tabButtons = document.querySelectorAll('.tab');
-    tabButtons.forEach(btn => {
-        const label = (btn.textContent || '').trim().toLowerCase();
-        if (label === 'word bank' || label.includes('word bank')) {
-            btn.style.display = 'none';
-            btn.disabled = true;
-            btn.setAttribute('aria-disabled', 'true');
-        }
-    });
-
-    // 2) Hide the word bank tab content area (common id)
-    const wordBankContent = document.getElementById('wordBank');
-    if (wordBankContent) {
-        wordBankContent.style.display = 'none';
-        wordBankContent.classList.remove('active');
+  // Hide the Word Bank tab button (top tab)
+  const tabButtons = document.querySelectorAll(".tab");
+  tabButtons.forEach(btn => {
+    const label = (btn.textContent || "").trim().toLowerCase();
+    if (label === "word bank" || label.includes("word bank")) {
+      btn.style.display = "none";
+      btn.disabled = true;
+      btn.setAttribute("aria-disabled", "true");
     }
+  });
 
-    // 3) If content uses a different id/class, try common containers
-    const fallbackContainers = [
-        document.querySelector('#word-bank'),
-        document.querySelector('.word-bank'),
-        document.querySelector('.wordbank'),
-        document.querySelector('[data-tab="wordBank"]'),
-        document.querySelector('[data-tab="word-bank"]')
-    ].filter(Boolean);
+  // Hide common word bank content container ids/classes
+  const wordBankContent = document.getElementById("wordBank");
+  if (wordBankContent) {
+    wordBankContent.style.display = "none";
+    wordBankContent.classList.remove("active");
+  }
 
-    fallbackContainers.forEach(el => {
-        el.style.display = 'none';
-        el.classList.remove('active');
-    });
+  const fallbackContainers = [
+    document.querySelector("#word-bank"),
+    document.querySelector(".word-bank"),
+    document.querySelector(".wordbank"),
+    document.querySelector('[data-tab="wordBank"]'),
+    document.querySelector('[data-tab="word-bank"]')
+  ].filter(Boolean);
 
-    // 4) Force game tab to be active
-    const gameTab = document.getElementById('game');
-    if (gameTab) {
-        gameTab.style.display = '';
-        gameTab.classList.add('active');
-    }
+  fallbackContainers.forEach(el => {
+    el.style.display = "none";
+    el.classList.remove("active");
+  });
 
-    // 5) Force game area visible
-    const gameArea = document.getElementById('gameArea');
-    if (gameArea) gameArea.style.display = 'block';
+  // Force game tab active if present
+  const gameTab = document.getElementById("game");
+  if (gameTab) {
+    gameTab.style.display = "";
+    gameTab.classList.add("active");
+  }
+
+  const gameArea = document.getElementById("gameArea");
+  if (gameArea) gameArea.style.display = "block";
 }
 
 function startGame() {
-    const p1Name = (document.getElementById('player1Name')?.value || '').trim();
-    const p2Name = (document.getElementById('player2Name')?.value || '').trim();
+  const p1Name = (document.getElementById("player1Name")?.value || "").trim();
+  const p2Name = (document.getElementById("player2Name")?.value || "").trim();
 
-    if (!p1Name && !p2Name) {
-        alert("Player name is required. Please enter at least one name.");
-        return;
-    }
+  // Require BOTH names
+  if (!p1Name || !p2Name) {
+    alert("Both player names are required.");
+    return;
+  }
 
-    gameState.player1.name = p1Name || 'Player 1';
-    gameState.player2.name = p2Name || 'Player 2';
+  gameState.player1.name = p1Name;
+  gameState.player2.name = p2Name;
 
-    const p1Display = document.getElementById('player1Display');
-    const p2Display = document.getElementById('player2Display');
-    if (p1Display) p1Display.textContent = gameState.player1.name;
-    if (p2Display) p2Display.textContent = gameState.player2.name;
+  const p1Display = document.getElementById("player1Display");
+  const p2Display = document.getElementById("player2Display");
+  if (p1Display) p1Display.textContent = gameState.player1.name;
+  if (p2Display) p2Display.textContent = gameState.player2.name;
 
-    // ✅ Hide word bank immediately once game starts
-    hideWordBankUI();
+  const gameArea = document.getElementById("gameArea");
+  if (gameArea) gameArea.style.display = "block";
 
-    nextRound();
+  hideWordBankUI();
+  nextRound();
 }
 
 function nextRound() {
-    if (wordBank.length === 0) {
-        alert('No words in the word bank! Add some words first.');
-        return;
-    }
+  if (wordBank.length === 0) {
+    alert("No words in the word bank! Add some words first.");
+    return;
+  }
 
-    gameState.guessedLetters = [];
-    gameState.wrongGuesses = 0;
-    gameState.gameActive = true;
+  gameState.guessedLetters = [];
+  gameState.wrongGuesses = 0;
+  gameState.gameActive = true;
 
-    const randomIndex = Math.floor(Math.random() * wordBank.length);
-    gameState.currentWord = wordBank[randomIndex];
+  const randomIndex = Math.floor(Math.random() * wordBank.length);
+  gameState.currentWord = wordBank[randomIndex];
 
-    const gameStatus = document.getElementById('gameStatus');
-    if (gameStatus) {
-        gameStatus.classList.remove('show');
-        gameStatus.className = 'game-status';
-    }
+  const gameStatus = document.getElementById("gameStatus");
+  if (gameStatus) {
+    gameStatus.classList.remove("show", "winner", "loser");
+    gameStatus.className = "game-status";
+  }
 
-    resetHangman();
-    resetKeyboard();
-    updateWordDisplay();
-    updateWrongLetters();
-    updateLives();
-    updateCurrentPlayer();
+  resetHangman();
+  resetKeyboard();
+  updateWordDisplay();
+  updateWrongLetters();
+  updateLives();
+  updateCurrentPlayer();
 }
 
 function guessLetter(letter) {
-    if (!gameState.gameActive) return;
-    if (gameState.guessedLetters.includes(letter)) return;
+  if (!gameState.gameActive) return;
+  if (gameState.guessedLetters.includes(letter)) return;
 
-    gameState.guessedLetters.push(letter);
+  gameState.guessedLetters.push(letter);
 
-    if (!gameState.currentWord.includes(letter)) {
-        gameState.wrongGuesses++;
-        updateHangman();
-    }
+  const keyBtn = document.getElementById("key-" + letter);
+  if (keyBtn) keyBtn.disabled = true;
 
-    updateWordDisplay();
-    updateWrongLetters();
-    updateLives();
-    checkGameStatus();
+  if (!gameState.currentWord.includes(letter)) {
+    gameState.wrongGuesses++;
+    updateHangman();
+  }
+
+  updateWordDisplay();
+  updateWrongLetters();
+  updateLives();
+  checkGameStatus();
 }
 
 function updateWordDisplay() {
-    const display = document.getElementById('wordDisplay');
-    if (!display) return;
+  const display = document.getElementById("wordDisplay");
+  if (!display) return;
 
-    let displayText = '';
-    for (let letter of gameState.currentWord) {
-        displayText += gameState.guessedLetters.includes(letter) ? letter + ' ' : '_ ';
-    }
-    display.textContent = displayText.trim();
+  let displayText = "";
+  for (const letter of gameState.currentWord) {
+    displayText += gameState.guessedLetters.includes(letter) ? letter + " " : "_ ";
+  }
+  display.textContent = displayText.trim();
 }
 
 function updateWrongLetters() {
-    const wrongLettersDiv = document.getElementById('wrongLetters');
-    if (!wrongLettersDiv) return;
+  const wrongLettersDiv = document.getElementById("wrongLetters");
+  if (!wrongLettersDiv) return;
 
-    const wrong = gameState.guessedLetters.filter(letter => !gameState.currentWord.includes(letter));
-    wrongLettersDiv.textContent = wrong.length === 0 ? 'None yet' : wrong.join(', ');
+  const wrong = gameState.guessedLetters.filter(l => !gameState.currentWord.includes(l));
+  wrongLettersDiv.textContent = wrong.length === 0 ? "None yet" : wrong.join(", ");
 }
 
 function updateLives() {
-    const livesLeft = gameState.maxWrong - gameState.wrongGuesses;
-    const el = document.getElementById('livesLeft');
-    if (el) el.textContent = livesLeft;
+  // Correct: 6 max wrong guesses means lives left = 6 - wrongGuesses
+  const livesLeft = gameState.maxWrong - gameState.wrongGuesses;
+  const el = document.getElementById("livesLeft");
+  if (el) el.textContent = String(livesLeft);
 }
 
 function updateHangman() {
-    const wrongOrder = ['head', 'leftArm', 'rightArm', 'body', 'leftLeg', 'rightLeg'];
-    const partIndex = gameState.wrongGuesses - 1;
+  const wrongOrder = ["head", "leftArm", "rightArm", "body", "leftLeg", "rightLeg"];
+  const partIndex = gameState.wrongGuesses - 1;
 
-    if (partIndex >= 0 && partIndex < wrongOrder.length) {
-        const partEl = document.getElementById(wrongOrder[partIndex]);
-        if (partEl) partEl.style.display = 'block';
-    }
+  if (partIndex >= 0 && partIndex < wrongOrder.length) {
+    const partEl = document.getElementById(wrongOrder[partIndex]);
+    if (partEl) partEl.style.display = "block";
+  }
 }
 
 function resetHangman() {
-    const parts = ['head', 'body', 'leftArm', 'rightArm', 'leftLeg', 'rightLeg'];
-    parts.forEach(part => {
-        const el = document.getElementById(part);
-        if (el) el.style.display = 'none';
-    });
+  const parts = ["head", "body", "leftArm", "rightArm", "leftLeg", "rightLeg"];
+  parts.forEach(part => {
+    const el = document.getElementById(part);
+    if (el) el.style.display = "none";
+  });
 }
 
 function resetKeyboard() {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    for (let letter of letters) {
-        const button = document.getElementById('key-' + letter);
-        if (button) button.disabled = false;
-    }
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  for (const letter of letters) {
+    const button = document.getElementById("key-" + letter);
+    if (button) button.disabled = false;
+  }
 }
 
 function updateCurrentPlayer() {
-    const player1Div = document.getElementById('player1Score');
-    const player2Div = document.getElementById('player2Score');
-    if (!player1Div || !player2Div) return;
+  const player1Div = document.getElementById("player1Score");
+  const player2Div = document.getElementById("player2Score");
+  if (!player1Div || !player2Div) return;
 
-    if (gameState.currentPlayer === 1) {
-        player1Div.classList.add('active');
-        player2Div.classList.remove('active');
-    } else {
-        player1Div.classList.remove('active');
-        player2Div.classList.add('active');
-    }
+  if (gameState.currentPlayer === 1) {
+    player1Div.classList.add("active");
+    player2Div.classList.remove("active");
+  } else {
+    player1Div.classList.remove("active");
+    player2Div.classList.add("active");
+  }
 }
 
 function checkGameStatus() {
-    const allLettersGuessed = [...gameState.currentWord].every(letter => gameState.guessedLetters.includes(letter));
-    if (allLettersGuessed) return gameWon();
-    if (gameState.wrongGuesses >= gameState.maxWrong) return gameLost();
+  const allLettersGuessed = [...gameState.currentWord].every(letter =>
+    gameState.guessedLetters.includes(letter)
+  );
+
+  if (allLettersGuessed) {
+    gameWon();
+    return;
+  }
+
+  if (gameState.wrongGuesses >= gameState.maxWrong) {
+    gameLost();
+    return;
+  }
 }
 
 function gameWon() {
-    gameState.gameActive = false;
+  gameState.gameActive = false;
 
-    if (gameState.currentPlayer === 1) {
-        gameState.player2.score += 10;
-        const s2 = document.getElementById('score2');
-        if (s2) s2.textContent = gameState.player2.score;
-    } else {
-        gameState.player1.score += 10;
-        const s1 = document.getElementById('score1');
-        if (s1) s1.textContent = gameState.player1.score;
-    }
+  // Keep your original scoring logic (winner is opposite player)
+  if (gameState.currentPlayer === 1) {
+    gameState.player2.score += 10;
+    const s2 = document.getElementById("score2");
+    if (s2) s2.textContent = String(gameState.player2.score);
+  } else {
+    gameState.player1.score += 10;
+    const s1 = document.getElementById("score1");
+    if (s1) s1.textContent = String(gameState.player1.score);
+  }
 
-    const statusDiv = document.getElementById('gameStatus');
-    const statusMsg = document.getElementById('statusMessage');
+  const statusDiv = document.getElementById("gameStatus");
+  const statusMsg = document.getElementById("statusMessage");
 
-    const winnerName = gameState.currentPlayer === 1 ? gameState.player2.name : gameState.player1.name;
+  const winnerName = gameState.currentPlayer === 1 ? gameState.player2.name : gameState.player1.name;
 
-    if (statusMsg) statusMsg.textContent = `🎉 ${winnerName} won! The word was: ${gameState.currentWord}`;
-    if (statusDiv) statusDiv.classList.add('show', 'winner');
+  if (statusMsg) statusMsg.textContent = `🎉 ${winnerName} won! The word was: ${gameState.currentWord}`;
+  if (statusDiv) statusDiv.classList.add("show", "winner");
 }
 
 function gameLost() {
-    gameState.gameActive = false;
+  gameState.gameActive = false;
 
-    const statusDiv = document.getElementById('gameStatus');
-    const statusMsg = document.getElementById('statusMessage');
+  const statusDiv = document.getElementById("gameStatus");
+  const statusMsg = document.getElementById("statusMessage");
 
-    const currentPlayerName = gameState.currentPlayer === 1 ? gameState.player1.name : gameState.player2.name;
+  const currentPlayerName = gameState.currentPlayer === 1 ? gameState.player1.name : gameState.player2.name;
 
-    if (statusMsg) statusMsg.textContent = `😢 ${currentPlayerName} lost! The word was: ${gameState.currentWord}`;
-    if (statusDiv) statusDiv.classList.add('show', 'loser');
+  if (statusMsg) statusMsg.textContent = `😢 ${currentPlayerName} lost! The word was: ${gameState.currentWord}`;
+  if (statusDiv) statusDiv.classList.add("show", "loser");
 
-    gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
+  // Switch player after a loss (as your original logic)
+  gameState.currentPlayer = gameState.currentPlayer === 1 ? 2 : 1;
 }
