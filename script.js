@@ -33,6 +33,11 @@ function toggleTheme() {
         themeIcon.textContent = '🌙';
     }
 }
+if (!playerName || playerName.trim() === "") {
+    alert("Player name is required");
+    return;
+}
+
 
 function switchTab(tabName) {
     const tabs = document.querySelectorAll('.tab-content');
