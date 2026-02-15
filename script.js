@@ -20,6 +20,8 @@ let gameState = {
 let wordBank = [];
 
 document.addEventListener('DOMContentLoaded', function() {
+
+    // Apply saved theme
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme === 'dark') {
         document.body.classList.add('dark');
@@ -39,9 +41,11 @@ function toggleTheme() {
         themeIcon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
     }
 
-    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    localStorage.setItem(
+        'theme',
+        document.body.classList.contains('dark') ? 'dark' : 'light'
+    );
 }
-
 
 function switchTab(tabName) {
     const tabs = document.querySelectorAll('.tab-content');
@@ -55,7 +59,7 @@ function switchTab(tabName) {
 }
 
 function loadWordBank() {
-    const stored = localStorage.getItem('wordBank');
+    const stored = localStorage.getItem('devopsWords');
     if (stored) {
         wordBank = JSON.parse(stored);
     } else {
@@ -104,6 +108,8 @@ function addWord() {
     const input = document.getElementById('newWord');
     const word = input.value.trim().toUpperCase();
 
+    if (!word) return;
+
     wordBank.push(word);
     input.value = '';
     saveWordBank();
@@ -113,7 +119,7 @@ function addWord() {
 function editWord(index) {
     const newWord = prompt('Edit word:', wordBank[index]);
     if (newWord) {
-        wordBank.splice(index, 1);
+        wordBank[index] = newWord.trim().toUpperCase();
         saveWordBank();
         displayWordBank();
     }
@@ -121,6 +127,7 @@ function editWord(index) {
 
 function deleteWord(index) {
     if (confirm('Are you sure you want to delete this word?')) {
+        wordBank.splice(index, 1);
         saveWordBank();
         displayWordBank();
     }
@@ -145,12 +152,12 @@ function startGame() {
     const p1Name = document.getElementById('player1Name').value.trim();
     const p2Name = document.getElementById('player2Name').value.trim();
 
-    // ✅ Fix Issue #1: Prevent starting the game if BOTH names are empty
+    // Fix Issue #1: Prevent starting without player name
     if (!p1Name && !p2Name) {
-        alert("Player name is required. Please enter at least one player name.");
+        alert("Player name is required. Please enter at least one name.");
         return;
     }
-    
+
     gameState.player1.name = p1Name || 'Player 1';
     gameState.player2.name = p2Name || 'Player 2';
     
@@ -187,10 +194,7 @@ function nextRound() {
 
 function guessLetter(letter) {
     if (!gameState.gameActive) return;
-    
-    if (gameState.guessedLetters.includes(letter)) {
-        return;
-    }
+    if (gameState.guessedLetters.includes(letter)) return;
     
     gameState.guessedLetters.push(letter);
     
@@ -226,21 +230,17 @@ function updateWrongLetters() {
         !gameState.currentWord.includes(letter)
     );
     
-    if (wrong.length === 0) {
-        wrongLettersDiv.textContent = 'None yet';
-    } else {
-        wrongLettersDiv.textContent = gameState.guessedLetters.join(', ');
-    }
+    wrongLettersDiv.textContent = wrong.length === 0 ? 
+        'None yet' : wrong.join(', ');
 }
 
 function updateLives() {
-    const livesLeft = gameState.maxWrong - gameState.wrongGuesses + 1;
+    // Fix Issue: Lives start at 6 instead of 7
+    const livesLeft = gameState.maxWrong - gameState.wrongGuesses;
     document.getElementById('livesLeft').textContent = livesLeft;
 }
 
 function updateHangman() {
-    const parts = ['head', 'body', 'leftArm', 'rightArm', 'leftLeg', 'rightLeg'];
-    
     const wrongOrder = ['head', 'leftArm', 'rightArm', 'body', 'leftLeg', 'rightLeg'];
     const partIndex = gameState.wrongGuesses - 1;
     
@@ -261,9 +261,7 @@ function resetKeyboard() {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     for (let letter of letters) {
         const button = document.getElementById('key-' + letter);
-        if (button) {
-            button.disabled = false;
-        }
+        if (button) button.disabled = false;
     }
 }
 
@@ -285,15 +283,8 @@ function checkGameStatus() {
         gameState.guessedLetters.includes(letter)
     );
     
-    if (allLettersGuessed) {
-        gameWon();
-        return;
-    }
-    
-    if (gameState.wrongGuesses >= gameState.maxWrong) {
-        gameLost();
-        return;
-    }
+    if (allLettersGuessed) return gameWon();
+    if (gameState.wrongGuesses >= gameState.maxWrong) return gameLost();
 }
 
 function gameWon() {
