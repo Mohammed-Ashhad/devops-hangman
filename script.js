@@ -20,19 +20,28 @@ let gameState = {
 let wordBank = [];
 
 document.addEventListener('DOMContentLoaded', function() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark');
+        const themeIcon = document.querySelector('.theme-icon');
+        if (themeIcon) themeIcon.textContent = '☀️';
+    }
+
     loadWordBank();
     generateKeyboard();
 });
 
 function toggleTheme() {
+    document.body.classList.toggle('dark');
+
     const themeIcon = document.querySelector('.theme-icon');
-    
-    if (themeIcon.textContent === '🌙') {
-        themeIcon.textContent = '☀️';
-    } else {
-        themeIcon.textContent = '🌙';
+    if (themeIcon) {
+        themeIcon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
     }
+
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
 }
+
 
 function switchTab(tabName) {
     const tabs = document.querySelectorAll('.tab-content');
